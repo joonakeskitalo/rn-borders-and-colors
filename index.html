@@ -97,12 +97,42 @@
           Click to copy hex or React Native styles.<br />Shift-clicking will
           also copy the style tag.
         </h3>
+
+        <div
+          style="display: flex; justify-content: center; align-items: center"
+        >
+          <label for="opacity-select">Opacity:</label>
+          <input
+            style="width: 200px"
+            type="range"
+            name="opacity-select"
+            id="opacity-select"
+            min="10"
+            max="100"
+            step="10"
+            value="100"
+            onchange="debouncedRenderItems()"
+          />
+        </div>
       </div>
       <div class="content"></div>
     </div>
   </body>
 
   <script>
+    const opacityHexRecord = {
+      100: "FF",
+      90: "E6",
+      80: "CC",
+      70: "B3",
+      60: "99",
+      50: "80",
+      40: "66",
+      30: "4D",
+      20: "33",
+      10: "1A",
+    };
+
     const shadeColor = (color, percent) => {
       let R = parseInt(color.substring(1, 3), 16);
       let G = parseInt(color.substring(3, 5), 16);
@@ -306,82 +336,108 @@
       document.body.removeChild(x);
     };
 
+    function debounce(func, timeout = 300) {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          func.apply(this, args);
+        }, timeout);
+      };
+    }
+
     const root = document.querySelector(":root");
+    const opacitySelect = document.getElementById("opacity-select");
+    const contentDiv = document.querySelector(".content");
 
-    colors
-      .filter((x) => x.hex.startsWith("#"))
-      .sort((a, b) => b.hex.localeCompare(a.hex))
-      .forEach((color) => {
-        const darker = shadeColor(color.hex, -25);
-        const contrasted = getContrastYIQ(color.hex.replace("#", ""));
+    const renderItems = () => {
+      contentDiv.innerHTML = null;
+      const selectedOpacity = parseInt(opacitySelect.value);
+      const opacityHex =
+        selectedOpacity === 100
+          ? ""
+          : opacityHexRecord[parseInt(opacitySelect.value)];
 
-        const div = document.createElement("div");
-        div.style.backgroundColor = color.hex;
-        div.style.border = `6px solid ${darker}`;
-        div.style.zIndex = 1;
-        div.onclick = (e) => {
-          e.stopImmediatePropagation();
-          const style = `borderColor: '${darker}', borderWidth: 2, backgroundColor: '${color.hex}'`;
-          if (e.shiftKey || e.metaKey) {
-            copy(`style={{ ${style} }}`);
-          } else {
-            copy(style);
-          }
-        };
+      colors
+        .filter((x) => x.hex.startsWith("#"))
+        .sort((a, b) => b.hex.localeCompare(a.hex))
+        .forEach((color) => {
+          const hexWithOpacity = `${color.hex}${opacityHex}`;
+          const darker = shadeColor(color.hex, -25);
+          const darkerWithOpacity = `${darker}${opacityHex}`;
+          const contrasted = getContrastYIQ(color.hex.replace("#", ""));
 
-        const titles = document.createElement("div");
-        titles.className = "titles";
+          const div = document.createElement("div");
+          div.style.backgroundColor = hexWithOpacity;
+          div.style.border = `6px solid ${darkerWithOpacity}`;
+          div.style.zIndex = 1;
+          div.onclick = (e) => {
+            e.stopImmediatePropagation();
+            const style = `borderColor: '${darker}', borderWidth: 2, backgroundColor: '${hexWithOpacity}'`;
+            if (e.shiftKey || e.metaKey) {
+              copy(`style={{ ${style} }}`);
+            } else {
+              copy(style);
+            }
+          };
 
-        const name = document.createElement("span");
-        name.innerText = color.name;
-        name.style.color = contrasted;
-        titles.appendChild(name);
+          const titles = document.createElement("div");
+          titles.className = "titles";
 
-        const buttons = document.createElement("div");
-        buttons.className = "buttons";
-        titles.appendChild(buttons);
+          const name = document.createElement("span");
+          name.innerText = color.name;
+          name.style.color = contrasted;
+          titles.appendChild(name);
 
-        const hexButton = document.createElement("button");
-        hexButton.innerText = color.hex;
-        hexButton.style.color = contrasted;
-        hexButton.onclick = (e) => {
-          e.stopImmediatePropagation();
-          copy(color.hex);
-        };
-        buttons.appendChild(hexButton);
+          const buttons = document.createElement("div");
+          buttons.className = "buttons";
+          titles.appendChild(buttons);
 
-        const copyBgButton = document.createElement("button");
-        copyBgButton.innerText = "Background";
-        copyBgButton.style.color = contrasted;
-        copyBgButton.onclick = (e) => {
-          e.stopImmediatePropagation();
-          const style = `backgroundColor: '${color.hex}'`;
+          const hexButton = document.createElement("button");
+          hexButton.innerText = hexWithOpacity;
+          hexButton.style.color = contrasted;
+          hexButton.onclick = (e) => {
+            e.stopImmediatePropagation();
+            copy(hexWithOpacity);
+          };
+          buttons.appendChild(hexButton);
 
-          if (e.shiftKey || e.metaKey) {
-            copy(`style={{ ${style} }}`);
-          } else {
-            copy(style);
-          }
-        };
-        buttons.appendChild(copyBgButton);
+          const copyBgButton = document.createElement("button");
+          copyBgButton.innerText = "Background";
+          copyBgButton.style.color = contrasted;
+          copyBgButton.onclick = (e) => {
+            e.stopImmediatePropagation();
+            const style = `backgroundColor: '${hexWithOpacity}'`;
 
-        const copyBorderButton = document.createElement("button");
-        copyBorderButton.innerText = "Border";
-        copyBorderButton.style.color = contrasted;
-        copyBorderButton.onclick = (e) => {
-          e.stopImmediatePropagation();
-          const style = `borderWidth: 2, borderColor: '${color.hex}'`;
+            if (e.shiftKey || e.metaKey) {
+              copy(`style={{ ${style} }}`);
+            } else {
+              copy(style);
+            }
+          };
+          buttons.appendChild(copyBgButton);
 
-          if (e.shiftKey || e.metaKey) {
-            copy(`style={{ ${style} }}`);
-          } else {
-            copy(style);
-          }
-        };
-        buttons.appendChild(copyBorderButton);
+          const copyBorderButton = document.createElement("button");
+          copyBorderButton.innerText = "Border";
+          copyBorderButton.style.color = contrasted;
+          copyBorderButton.onclick = (e) => {
+            e.stopImmediatePropagation();
+            const style = `borderWidth: 2, borderColor: '${hexWithOpacity}'`;
 
-        div.appendChild(titles);
-        document.querySelector(".content").appendChild(div);
-      });
+            if (e.shiftKey || e.metaKey) {
+              copy(`style={{ ${style} }}`);
+            } else {
+              copy(style);
+            }
+          };
+          buttons.appendChild(copyBorderButton);
+
+          div.appendChild(titles);
+          contentDiv.appendChild(div);
+        });
+    };
+
+    renderItems();
+    const debouncedRenderItems = debounce(renderItems, 300);
   </script>
 </html>
