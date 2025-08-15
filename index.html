@@ -373,7 +373,7 @@
           div.style.zIndex = 1;
           div.onclick = (e) => {
             e.stopImmediatePropagation();
-            const style = `borderColor: '${darker}', borderWidth: 2, backgroundColor: '${hexWithOpacity}'`;
+            const style = `borderColor: '${darkerWithOpacity}', borderWidth: 2, backgroundColor: '${hexWithOpacity}'`;
             if (e.shiftKey || e.metaKey) {
               copy(`style={{ ${style} }}`);
             } else {
