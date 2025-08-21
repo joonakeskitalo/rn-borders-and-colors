@@ -603,7 +603,6 @@
 
       colors
         .filter((x) => x.hex.startsWith("#"))
-        .sort((a, b) => b.hex.localeCompare(a.hex))
         .forEach((color) => {
           const hexWithOpacity = `${color.hex}${opacityHex}`;
           const darker = shadeColor(color.hex, -25);
