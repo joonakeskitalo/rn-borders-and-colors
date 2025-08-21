@@ -172,7 +172,7 @@
       return "#" + RR + GG + BB;
     };
 
-    const colors = [
+    const namedColors = [
       { name: "aliceblue", hex: "#f0f8ff" },
       { name: "antiquewhite", hex: "#faebd7" },
       { name: "aqua", hex: "#00ffff" },
@@ -321,7 +321,9 @@
       { name: "whitesmoke", hex: "#f5f5f5" },
       { name: "yellow", hex: "#ffff00" },
       { name: "yellowgreen", hex: "#9acd32" },
+    ];
 
+    const tailWindColors = [
       { name: "red-50", hex: "#fef2f2" },
       { name: "red-100", hex: "#ffe2e2" },
       { name: "red-200", hex: "#ffc9c9" },
@@ -564,6 +566,11 @@
       { name: "stone-800", hex: "#292524" },
       { name: "stone-900", hex: "#1c1917" },
       { name: "stone-950", hex: "#0c0a09" },
+    ];
+
+    const colors = [
+      ...tailWindColors,
+      ...namedColors.sort((a, b) => b.hex.localeCompare(a.hex)),
     ];
 
     function getContrastYIQ(hexcolor) {
